@@ -32,6 +32,7 @@ public:
 	lvector(int n);
 	lvector(int n, T item);
 	lvector(const lvector<T>& vector);
+	~lvector(){delete[] elem;}
 	int size()const { return _size; }
 	int capacity()const { return CAPACITY; }
 
@@ -53,7 +54,7 @@ public:
 	T insert(int rank, T item);
 	int remove(int lo, int hi);
 	T remove(int rank);
-	void print();
+	void print() const;
 	int getMax()const { return getMax(0, _size); }
 
 	void sort(int lo, int hi);
@@ -202,7 +203,7 @@ template<typename T> T lvector<T>::remove(int rank) {
 	}
 	exit(0);
 }
-template<typename T> void lvector<T>::print() {
+template<typename T> void lvector<T>::print() const {
 	for (int i = 0; i < _size; i++) {
 		std::cout << elem[i] << "  ";
 	}

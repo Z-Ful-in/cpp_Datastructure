@@ -26,5 +26,8 @@
     <ClInclude Include="tools.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="llist.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

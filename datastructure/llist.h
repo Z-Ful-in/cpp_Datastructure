@@ -88,6 +88,7 @@ public:
 	Node<T>* getMaxNode()const { return getMaxNode(header->next, _size); }
 
 	int size()const { return _size; }
+	bool isEmpty const{ return _size == 0; }
 	Node<T>* getheader()const { return header; }
 	Node<T>* gettrailer()const { return trailer; }
 

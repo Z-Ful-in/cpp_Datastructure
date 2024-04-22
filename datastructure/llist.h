@@ -44,6 +44,7 @@ template<typename T> void Node<T>::insertB(Node<T>* node) {
 		node->prev = this;
 	}
 }
+
 template<typename T> class llist {
 protected:
 	int _size;
@@ -56,11 +57,23 @@ protected:
 	void quickSort(Node<T>*p, int n);
 	void mergeSort(Node<T>*p, int n);
 public:
+	class iterator {
+		llist<T>* parent;
+		int index;
+	public:
+		iterator(llist<T>* item, int index) : parent(item), index(index) {}
+		iterator& operator++();
+		bool operator!=(const iterator& other);
+		Node<T>* operator*();
+	};
 	llist();
 	llist(int n, T item);
 	llist(const llist& other);
 	~llist();
 
+	iterator begin() { return iterator(this, 0); }
+	iterator end() { return iterator(this, _size); }
+	
 	//helper method
 	void init();
 	void print()const;
@@ -460,4 +473,18 @@ template<typename T> void llist<T>::quickSort(Node<T>* p, int n) {
 }
 template<typename T> void llist<T>::sort() {
 	mergeSort(header->next, _size);
+}
+
+template<typename T> typename llist<T>::iterator& llist<T>::iterator::operator++()
+{
+	index++;
+	return *this;
+}
+template<typename T> bool llist<T>::iterator::operator!=(const iterator& other)
+{
+	return index < other.index;
+}
+template<typename T> Node<T>* llist<T>::iterator::operator*()
+{
+	return parent->lget(index);
 }

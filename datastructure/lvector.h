@@ -14,7 +14,6 @@ protected:
 	void bubbleSort(int lo, int hi);
 	void quickSort(int lo, int hi);
 	void insertSort(int lo, int hi);
-
 	void mergeSort(int lo, int hi);
 
 public:
@@ -197,7 +196,7 @@ template <typename T> int lvector<T>::remove(int lo, int hi) {
 	return hi - lo;
 }
 template<typename T> T lvector<T>::remove(int rank) {
-	if (ranktest(rank)) {
+	if (ranktest(rank + 1)) {
 		T e = elem[rank];
 		remove(rank, rank + 1);
 		return e;

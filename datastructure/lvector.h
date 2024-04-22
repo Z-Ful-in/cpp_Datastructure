@@ -72,6 +72,7 @@ public:
 	int find(const T& target)const { return 0 >= _size ? -1 : find(0, _size, target); }
 };
 
+
 template<typename T> int lvector<T>::getMax(int lo, int hi) const {
 	int max = elem[lo], record = 0;
 	for (int i = lo; i < hi; i++){

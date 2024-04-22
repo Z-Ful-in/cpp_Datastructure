@@ -4,3 +4,7 @@ template<typename T> void lswap(T& a, T& b) {
 	a = b;
 	b = temp;
 }
+
+template<typename T> T lmax(T a, T b) {
+	return (a > b) ? a : b;
+}

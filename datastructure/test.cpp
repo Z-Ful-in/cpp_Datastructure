@@ -11,6 +11,11 @@ public:
 	~test() { cout << "b" << endl; }
 };
 int main() {
-	llist<int> p(10, 1);
+	srand(time(0));
+	llist<int> p;
+	for (int i = 0; i < 10; i++)
+		p.insertAsLast(rand() % 10);
+	p.print();
+	p.uniquify();
 	p.print();
 }

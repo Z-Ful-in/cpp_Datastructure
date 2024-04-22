@@ -73,7 +73,7 @@ public:
 };
 
 template<typename T> int lvector<T>::getMax(int lo, int hi) const {
-	int max = 0, record = 0;
+	int max = elem[lo], record = 0;
 	for (int i = lo; i < hi; i++){
 		if (elem[i] > max) {
 			max = elem[i];
@@ -268,29 +268,24 @@ template<typename T> void lvector<T>::mergeSort(int lo, int hi) {
 	mergeSort(lo, (lo + hi) / 2);
 	mergeSort((lo + hi) / 2, hi);
 
-	T* temp1 = elem + lo;
+	T* temp0 = elem + lo;
 	T* temp2 = elem + (int)((hi + lo) / 2);
-	T* result = new T[CAPACITY];
-	for (int i = lo; i < hi; i++){
-		result[i] = elem[i];
-	}
+	T* temp1 = new T[(int)(hi - lo) / 2];
+	for (int i = 0; i < (hi - lo) / 2; temp1[i] = temp0[i++]);
 	int p = 0, q = 0;
 	for (int i = lo; i < hi; i++) {
 		if ((q == ceil((double)(hi - lo) / 2))  ||( (p < (int)(hi - lo) / 2) && (temp1[p] < temp2[q]))) {
-			result[i] = temp1[p++];
+			elem[i] = temp1[p++];
 		}
 		else {
-			result[i] = temp2[q++];
+			elem[i] = temp2[q++];
 		}
 	}
-	for (int i = lo; i < hi; i++) {
-		elem[i] = result[i];
-	}
-	delete[] result;
+	delete[] temp1;
 	return;
 }
 template<typename T> void lvector<T>::sort(int lo, int hi) {
-	quickSort(lo, hi);
+	mergeSort(lo, hi);
 }
 
 template<typename T> int lvector<T>::search(int lo, int hi, const T& target) const {

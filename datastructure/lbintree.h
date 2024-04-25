@@ -10,27 +10,29 @@ public:
 	TreeNode<T>* rchild;
 	TreeNode<T>* parent;
 	int height;
-	TreeNode() :item(T()), lchild(nullptr), rchild(nullptr), parent(nullptr) {}
-	TreeNode(const T& item) :item(item), lchild(nullptr), rchild(nullptr), parent(nullptr) {}
-	TreeNode(const T& item, TreeNode<T>* lchild, TreeNode<T>* rchild, TreeNode<T>* parent) :item(item), lchild(lchild), rchild(rchild), parent(parent) {}
-	TreeNode(const TreeNode<T>*& other) :item(other->item), lchild(other->lchild), rchild(other->rchild), parent(other->parent) {}
+	TreeNode() :item(T()), lchild(nullptr), rchild(nullptr), parent(nullptr), height(1) {}
+	TreeNode(const T& item) :item(item), lchild(nullptr), rchild(nullptr), parent(nullptr), height(1) {}
+	TreeNode(const T& item, TreeNode<T>* lchild, TreeNode<T>* rchild, TreeNode<T>* parent) :item(item), lchild(lchild), rchild(rchild), parent(parent), height(calcuHeight()) {}
+	TreeNode(const TreeNode<T>*& other) :item(other->item), lchild(other->lchild), rchild(other->rchild), parent(other->parent), height(other->height) {}
 
 	void insertleft(TreeNode<T>* other) {
 		parent = other;
 		lchild = other->lchild;
 		other->lchild = this;
+		updateHeightAbove();
 	}
 	void insertright(TreeNode<T>* other) {
 		parent = other;
 		rchild = other->rchild;
 		other->rchild = this;
+		updateHeightAbove();
 	}
 
 	bool isRoot()const {
 		return parent == nullptr;
 	}
 	bool isLeaf()const {
-		return (parent != nullptr) && (lchild == nullptr) && (rchild == nullptr);
+		return (lchild == nullptr) && (rchild == nullptr);
 	}
 	bool hasLeft()const { return lchild != nullptr; }
 	bool hasRight()const { return rchild != nullptr; }
@@ -40,8 +42,23 @@ public:
 		while (p = p->parent) height++;
 		return height;
 	}
-	int height() const { return height; }
+	int calcuHeight() const;
+	void updateHeightAbove();
+
 };
+template<typename T> int TreeNode<T>::calcuHeight()const {
+	if (isLeaf())return 1;
+	if (!hasLeft()) return 1 + rchild->height;
+	if (!hasRight()) return 1 + lchild->height;
+	return 1 + lmax(rchild->height, lchild->height);
+}
+template<typename T> void TreeNode<T>::updateHeightAbove() {
+	TreeNode<T>* p = this;
+	while (p) {
+		p->height = p->calcuHeight();
+		p = p->parent;
+	}
+}
 template<typename T> class lbintree {
 protected:
 	TreeNode<T>* _root;
@@ -53,8 +70,6 @@ public:
 	lbintree(int n, const T& item) { init(n, item); }
 
 	int size()const { return _size; }
-	int height(TreeNode<T>* p);
-	void updateHeightAbove(TreeNode<T>* p);
 	bool isEmpty() const { return _root == nullptr; }
 	TreeNode<T>*& root() { return _root; }
 
@@ -98,17 +113,7 @@ template<typename T> void lbintree<T>::init(int n, const T& item){
 		}
 	}
 }
-template<typename T> int lbintree<T>::height(TreeNode<T>* p) {
-	if (!p) return 0;
-	if (p->isLeaf())return 1;
-	return 1 + lmax(height(p->lchild), height(p->rchild));
-}
-template<typename T> void lbintree<T>::updateHeightAbove(TreeNode<T>* p) {
-	while (p) {
-		p->height = height(p);
-		p = p->parent;
-	}
-}
+
 
 template<typename T> TreeNode<T>* lbintree<T>::insertAsRoot(const T& e) {
 	_size = 1;
@@ -131,6 +136,13 @@ template<typename T> TreeNode<T>* lbintree<T>::insertAsLT(TreeNode<T>* node, lbi
 	_size += tree->size();
 	node->lchild = tree->root();
 	node->lchild->parent = node;
+	node->lchild->updateHeightAbove();
+}
+template<typename T> TreeNode<T>* lbintree<T>::insertAsRT(TreeNode<T>* node, lbintree<T>*& tree) {
+	_size += tree->size();
+	node->rchild = tree->root();
+	node->rchild->parent = node;
+	node->rchild->updateHeightAbove();
 }
 
 template<typename T> template<typename F>
@@ -169,5 +181,5 @@ void lbintree<T>::traverseLevel(TreeNode<T>* node, F visit) {
 }
 
 template<typename T> void lbintree<T>::print() {
-	traverseLevel(_root, [](TreeNode<T>* p)->void {std::cout << p->item << "  "; });
+	traverseLevel(_root, [](TreeNode<T>* p)->void {std::cout << p->height << "  "; });
 }

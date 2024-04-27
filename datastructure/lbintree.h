@@ -16,14 +16,14 @@ public:
 	TreeNode(const T& item, TreeNode<T>* lchild, TreeNode<T>* rchild, TreeNode<T>* parent) :item(item), lchild(lchild), rchild(rchild), parent(parent), height(calcuHeight()) {}
 	TreeNode(const TreeNode<T>*& other) :item(other->item), lchild(other->lchild), rchild(other->rchild), parent(other->parent), height(other->height) {}
 
-	void insertleft(TreeNode<T>* other) {
+	void insertAsLeftChild(TreeNode<T>* other) {
 		parent = other;
 		lchild = other->lchild;
 		if (other->hasLeft())other->lchild->parent = this;
 		other->lchild = this;
 		updateHeightAbove();
 	}
-	void insertright(TreeNode<T>* other) {
+	void insertAsRightChild(TreeNode<T>* other) {
 		parent = other;
 		rchild = other->rchild;
 		if (other->hasRight())other->rchild->parent = this;
@@ -106,6 +106,7 @@ public:
 	template<typename F> void inTraverse(TreeNode<T>* node, F visit); // iteration
 
 	void print();
+	void printLevel();
 };
 
 template<typename T> void lbintree<T>::init(int n, const T& item){
@@ -120,14 +121,14 @@ template<typename T> void lbintree<T>::init(int n, const T& item){
 			if (i == n) break;
 			i++;
 			TreeNode<T>* newNode = new TreeNode<T>(item);
-			newNode->insertleft(node);
+			newNode->insertAsLeftChild(node);
 			q.enqueue(newNode);
 		}
 		if (!node->hasRight()) {
 			if (i == n) break;
 			i++;
 			TreeNode<T>* newNode = new TreeNode<T>(item);
-			newNode->insertright(node);
+			newNode->insertAsRightChild(node);
 			q.enqueue(newNode);
 		}
 	}
@@ -142,13 +143,13 @@ template<typename T> TreeNode<T>* lbintree<T>::insertAsRoot(const T& e) {
 template<typename T> TreeNode<T>* lbintree<T>::insertAsLC(TreeNode<T>* node, const T& e) {
 	_size++;
 	TreeNode<T>* newnode = new TreeNode<T>(e);
-	newnode->insertleft(node);
+	newnode->insertAsLeftChild(node);
 	return newnode;
 }
 template<typename T> TreeNode<T>* lbintree<T>::insertAsRC(TreeNode<T>* node, const T& e) {
 	_size++;
 	TreeNode<T>* newnode = new TreeNode<T>(e);
-	newnode->insertright(node);
+	newnode->insertAsRightChild(node);
 	return newnode;
 }
 template<typename T> TreeNode<T>* lbintree<T>::insertAsLT(TreeNode<T>* node, lbintree<T>*& tree) {
@@ -297,4 +298,20 @@ template<typename T> void lbintree<T>::print() {
 		}
 	);
 	std::cout << std::endl;
+}
+template<typename T> void lbintree<T>::printLevel() {
+	lqueue<TreeNode<T>*> q;
+	q.enqueue(_root);
+	while (!q.isEmpty()) {
+		int qsize = q.size();
+		for(int i = 0;i < qsize;i++){
+			TreeNode<T>* temp = q.dequeue();
+			std::cout << temp->item << "(" << temp->height << ")" << "   ";
+			if (temp->hasLeft())
+				q.enqueue(temp->lchild);
+			if (temp->hasRight())
+				q.enqueue(temp->rchild);
+		}
+		std::cout << std::endl;
+	}
 }

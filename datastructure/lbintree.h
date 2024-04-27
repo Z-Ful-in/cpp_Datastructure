@@ -1,6 +1,7 @@
 #pragma once
 #include<iostream>
 #include "lqueue.h"
+#include "lstack.h"
 #include "tools.h"
 
 template<typename T> class TreeNode {
@@ -18,12 +19,14 @@ public:
 	void insertleft(TreeNode<T>* other) {
 		parent = other;
 		lchild = other->lchild;
+		if (other->hasLeft())other->lchild->parent = this;
 		other->lchild = this;
 		updateHeightAbove();
 	}
 	void insertright(TreeNode<T>* other) {
 		parent = other;
 		rchild = other->rchild;
+		if (other->hasRight())other->rchild->parent = this;
 		other->rchild = this;
 		updateHeightAbove();
 	}
@@ -34,9 +37,12 @@ public:
 	bool isLeaf()const {
 		return (lchild == nullptr) && (rchild == nullptr);
 	}
+	bool isParent(TreeNode<T>* other);
+	bool isLeftChild(TreeNode<T>* other)const { return parent == other && this == other->lchild; }
+	bool isRightChild(TreeNode<T>* other)const { return parent == other && this == other->rchild;; }
 	bool hasLeft()const { return lchild != nullptr; }
 	bool hasRight()const { return rchild != nullptr; }
-	int depth()const {
+	int depth() {
 		TreeNode<T>* p = this;
 		int height = 0;
 		while (p = p->parent) height++;
@@ -46,6 +52,15 @@ public:
 	void updateHeightAbove();
 
 };
+template<typename T> bool TreeNode<T>::isParent(TreeNode<T>* other){
+	TreeNode<T>* p = other->parent;
+	while (p) {
+		if (p == this)
+			return true;
+		p = p->parent;
+	}
+	return false;
+}
 template<typename T> int TreeNode<T>::calcuHeight()const {
 	if (isLeaf())return 1;
 	if (!hasLeft()) return 1 + rchild->height;
@@ -81,10 +96,14 @@ public:
 
 	int remove(TreeNode<T>* node);
 
-	template<typename F> void traversePre(TreeNode<T>* node, F visit);
-	template<typename F> void traversePost(TreeNode<T>* node, F visit);
-	template<typename F> void traverseIn(TreeNode<T>* node, F visit);
+	template<typename F> void traversePre(TreeNode<T>* node, F visit); // recursion
+	template<typename F> void traversePost(TreeNode<T>* node, F visit); // recursion
+	template<typename F> void traverseIn(TreeNode<T>* node, F visit); // recursion
 	template<typename F> void traverseLevel(TreeNode<T>* node, F visit);
+
+	template<typename F> void preTraverse(TreeNode<T>* node, F visit); // iteration
+	template<typename F> void postTraverse(TreeNode<T>* node, F visit); // iteration
+	template<typename F> void inTraverse(TreeNode<T>* node, F visit); // iteration
 
 	void print();
 };
@@ -155,16 +174,16 @@ void lbintree<T>::traversePre(TreeNode<T>* node, F visit) {//middle->left->right
 template<typename T> template<typename F>
 void lbintree<T>::traversePost(TreeNode<T>* node, F visit) {//left->right->middle
 	if (!node)return;
-	traversePre(node->lchild, visit);
-	traversePre(node->rchild, visit);
+	traversePost(node->lchild, visit);
+	traversePost(node->rchild, visit);
 	visit(node);
 }
 template<typename T> template<typename F>
 void lbintree<T>::traverseIn(TreeNode<T>* node, F visit) {//left->middle->right
 	if (!node)return;
-	traversePre(node->lchild, visit);
+	traverseIn(node->lchild, visit);
 	visit(node);
-	traversePre(node->rchild, visit);
+	traverseIn(node->rchild, visit);
 }
 template<typename T> template<typename F>
 void lbintree<T>::traverseLevel(TreeNode<T>* node, F visit) {
@@ -180,6 +199,102 @@ void lbintree<T>::traverseLevel(TreeNode<T>* node, F visit) {
 	}
 }
 
+
+/*
+* The iteration version of traverse uses some kind of "mark" to make the 
+* program "knows" the the treenode is going to be visited rather than pushed.
+* For the first time we visit the node, we add a nullptr as a notation that 
+* the node should be visited in the next time, that is, the node before it is nullptr.
+*/
+template<typename T> template<typename F>
+void lbintree<T>::preTraverse(TreeNode<T>* node, F visit){ // middle -> left -> right
+	lstack<TreeNode<T>*> st;
+	if (node) st.push(node);
+	TreeNode<T>* cur = node;
+	while (!st.isEmpty()) {
+		cur = st.pop(); // get the top node of the stack.
+		if (cur) { // if the node is not nullptr, we should push it and its children to the stack
+			if (cur->hasLeft()) // right
+				st.push(cur->lchild);
+			if (cur->hasRight()) // left
+				st.push(cur->rchild);
+			st.push(cur); // middle
+			st.push(nullptr); //the nullptr will traverse all the nodes with the move of cur
+		}
+		else {// there is a nullptr node
+			cur = st.pop(); // then we get the next node, that is the node we will visit.
+			visit(cur);
+		}
+	}
+}
+template<typename T> template<typename F>
+void lbintree<T>::postTraverse(TreeNode<T>* node, F visit){
+	lstack<TreeNode<T>*> st;
+	if (node)st.push(node);
+	TreeNode<T>* cur = node;
+	while (!st.isEmpty()) {
+		cur = st.pop(); // get the top node of the stack
+		if(cur){ // the node is not a nullptr node 
+			st.push(cur); // middle
+			st.push(nullptr);
+			if (cur->hasRight()) // right
+				st.push(cur->rchild);
+			if (cur->hasLeft()) // left
+				st.push(cur->lchild);
+		}
+		else {
+			cur = st.pop();
+			visit(cur);
+		}
+	}
+}
+template<typename T> template<typename F>
+void lbintree<T>::inTraverse(TreeNode<T>* node, F visit){
+	lstack<TreeNode<T>*> st;
+	if (node) st.push(node);
+	TreeNode<T>* cur = node;
+	while (!st.isEmpty()) {
+		cur = st.pop();
+		if (cur) {
+			if (cur->hasRight())
+				st.push(cur->rchild);
+			st.push(cur);
+			st.push(nullptr); // add a virtual node after the real node
+			if (cur->hasLeft())
+				st.push(cur->lchild);
+		}
+		else {
+			cur = st.pop();// the node after virtual node is the node that we will visit
+			visit(cur);
+		}
+	}
+}
+
 template<typename T> void lbintree<T>::print() {
-	traverseLevel(_root, [](TreeNode<T>* p)->void {std::cout << p->height << "  "; });
+	traversePost(_root, [](TreeNode<T>* p)->void {
+		std::cout << p->item << "  ";
+		if (p->parent) std::cout << "parent: " << p->parent->item << "  ";
+		if (p->hasLeft())	std::cout << "lchild " << p->lchild->item << "  ";
+		if (p->hasRight())	std::cout << "rchild " << p->rchild->item << "  ";
+		std::cout << std::endl;
+	});
+	std::cout << std::endl;
+	traversePost(_root, [](TreeNode<T>* p)->void {
+		std::cout << p->height;
+		}
+	);
+	std::cout << std::endl;
+	postTraverse(_root, [](TreeNode<T>* p)->void {
+		std::cout << p->item << "  ";
+		if (p->parent) std::cout << "parent: " << p->parent->item << "  ";
+		if (p->hasLeft())	std::cout << "lchild " << p->lchild->item << "  ";
+		if (p->hasRight())	std::cout << "rchild " << p->rchild->item << "  ";
+		std::cout << std::endl;
+	});
+	std::cout << std::endl;
+	postTraverse(_root, [](TreeNode<T>* p)->void {
+		std::cout << p->height;
+		}
+	);
+	std::cout << std::endl;
 }

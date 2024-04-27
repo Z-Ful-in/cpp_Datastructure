@@ -40,6 +40,7 @@ public:
 
 	bool ranktest(int rank) const;
 	bool rangetest(int lo, int hi)const;
+	bool isEmpty()const { return _size == 0; }
 	bool isSorted() const { return isSorted(0, _size, [](const T& a, const T& b) ->bool {return a <= b; }); }
 	template <typename F> bool isSorted(int lo, int hi, F compare) const;
 

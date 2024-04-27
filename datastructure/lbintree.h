@@ -83,6 +83,7 @@ public:
 	lbintree() :_root(new TreeNode<T>()), _size(0) {}
 	lbintree(int n) { init(n, T()); }
 	lbintree(int n, const T& item) { init(n, item); }
+	lbintree(const lbintree& other) :_root(other.root()), _size(other.size()) {}
 
 	int size()const { return _size; }
 	bool isEmpty() const { return _root == nullptr; }

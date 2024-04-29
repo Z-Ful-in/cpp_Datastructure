@@ -81,6 +81,7 @@ protected:
 	void init(int n, const T& item);
 public:
 	lbintree() :_root(new TreeNode<T>()), _size(0) {}
+	lbintree(TreeNode<T>* node) :_root(node), _size(1) {}
 	lbintree(int n) { init(n, T()); }
 	lbintree(int n, const T& item) { init(n, item); }
 	lbintree(const lbintree& other) :_root(other.root()), _size(other.size()) {}
@@ -95,7 +96,9 @@ public:
 	TreeNode<T>* insertAsLT(TreeNode<T>* node, lbintree<T>*& tree);
 	TreeNode<T>* insertAsRT(TreeNode<T>* node, lbintree<T>*& tree);
 
+	void insertLevel(T item);
 	int remove(TreeNode<T>* node);
+	TreeNode<T>* find(T item);
 
 	template<typename F> void traversePre(TreeNode<T>* node, F visit); // recursion
 	template<typename F> void traversePost(TreeNode<T>* node, F visit); // recursion
@@ -105,7 +108,7 @@ public:
 	template<typename F> void preTraverse(TreeNode<T>* node, F visit); // iteration
 	template<typename F> void postTraverse(TreeNode<T>* node, F visit); // iteration
 	template<typename F> void inTraverse(TreeNode<T>* node, F visit); // iteration
-
+	
 	void print();
 	void printLevel();
 };
@@ -166,6 +169,55 @@ template<typename T> TreeNode<T>* lbintree<T>::insertAsRT(TreeNode<T>* node, lbi
 	node->rchild->updateHeightAbove();
 }
 
+template<typename T> void lbintree<T>::insertLevel(T item){
+	if (!_root) {
+		insertAsRoot(item);
+		return;
+	}
+	lqueue<TreeNode<T>*> q;
+	q.enqueue(_root);
+	while (!q.isEmpty()) {
+		TreeNode<T>* temp = q.dequeue();
+		if (!temp->hasLeft()) {
+			insertAsLC(temp, item);
+			return;
+		}
+		else {
+			if (!temp->hasRight()) {
+				insertAsRC(temp, item);
+				return;
+			}
+			q.enqueue(temp->lchild);
+			q.enqueue(temp->rchild);
+		}
+	}
+}
+
+template<typename T> int lbintree<T>::remove(TreeNode<T>* node){
+	int removalSize = 0;
+	TreeNode<T>* p = node->parent;
+	if (!p) {
+		_root = nullptr;
+		int result = _size;
+		_size = 0;
+		return result;
+	}
+	lqueue<TreeNode<T>*> q;
+	q.enqueue(node);
+	while (!q.isEmpty()) {
+		TreeNode<T>* temp = q.dequeue();
+		removalSize++;
+		if (temp->hasLeft()) q.enqueue(temp->lchild);
+		if (temp->hasRight()) q.enqueue(temp->rchild);
+	}
+	if (node == node->parent->lchild) node->parent->lchild = nullptr;
+	if (node->parent == node->parent->rchild) node->parent->rchild = nullptr;
+	node->parent = nullptr;
+	_size -= removalSize;
+	p->updateHeightAbove();
+	return removalSize;
+}
+
 template<typename T> template<typename F>
 void lbintree<T>::traversePre(TreeNode<T>* node, F visit) {//middle->left->right
 	if (!node)return;
@@ -216,10 +268,10 @@ void lbintree<T>::preTraverse(TreeNode<T>* node, F visit){ // middle -> left -> 
 	while (!st.isEmpty()) {
 		cur = st.pop(); // get the top node of the stack.
 		if (cur) { // if the node is not nullptr, we should push it and its children to the stack
-			if (cur->hasLeft()) // right
-				st.push(cur->lchild);
-			if (cur->hasRight()) // left
+			if (cur->hasRight()) // right
 				st.push(cur->rchild);
+			if (cur->hasLeft()) // left
+				st.push(cur->lchild);
 			st.push(cur); // middle
 			st.push(nullptr); //the nullptr will traverse all the nodes with the move of cur
 		}
@@ -273,7 +325,7 @@ void lbintree<T>::inTraverse(TreeNode<T>* node, F visit){
 }
 
 template<typename T> void lbintree<T>::print() {
-	traversePost(_root, [](TreeNode<T>* p)->void {
+	traversePre(_root, [](TreeNode<T>* p)->void {
 		std::cout << p->item << "  ";
 		if (p->parent) std::cout << "parent: " << p->parent->item << "  ";
 		if (p->hasLeft())	std::cout << "lchild " << p->lchild->item << "  ";
@@ -281,12 +333,12 @@ template<typename T> void lbintree<T>::print() {
 		std::cout << std::endl;
 	});
 	std::cout << std::endl;
-	traversePost(_root, [](TreeNode<T>* p)->void {
+	traversePre(_root, [](TreeNode<T>* p)->void {
 		std::cout << p->height;
 		}
 	);
 	std::cout << std::endl;
-	postTraverse(_root, [](TreeNode<T>* p)->void {
+	preTraverse(_root, [](TreeNode<T>* p)->void {
 		std::cout << p->item << "  ";
 		if (p->parent) std::cout << "parent: " << p->parent->item << "  ";
 		if (p->hasLeft())	std::cout << "lchild " << p->lchild->item << "  ";
@@ -294,7 +346,7 @@ template<typename T> void lbintree<T>::print() {
 		std::cout << std::endl;
 	});
 	std::cout << std::endl;
-	postTraverse(_root, [](TreeNode<T>* p)->void {
+	preTraverse(_root, [](TreeNode<T>* p)->void {
 		std::cout << p->height;
 		}
 	);

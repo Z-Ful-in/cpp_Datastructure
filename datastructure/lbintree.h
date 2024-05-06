@@ -1,5 +1,6 @@
 #pragma once
 #include<iostream>
+#include "lstring.h"
 #include "lqueue.h"
 #include "lstack.h"
 #include "tools.h"
@@ -80,7 +81,7 @@ protected:
 	int _size;
 	void init(int n, const T& item);
 public:
-	lbintree() :_root(new TreeNode<T>()), _size(0) {}
+	lbintree() :_root(nullptr), _size(0) {}
 	lbintree(TreeNode<T>* node) :_root(node), _size(1) {}
 	lbintree(int n) { init(n, T()); }
 	lbintree(int n, const T& item) { init(n, item); }
@@ -88,9 +89,10 @@ public:
 
 	int size()const { return _size; }
 	bool isEmpty() const { return _root == nullptr; }
-	TreeNode<T>*& root() { return _root; }
+	TreeNode<T>* root() { return _root;}
 
-	TreeNode<T>* insertAsRoot(const T& e);
+	TreeNode<T>* insertRootTakeLeft(const T& e);
+	TreeNode<T>* insertRootTakeRight(const T& e);
 	TreeNode<T>* insertAsLC(TreeNode<T>* node, const T& e);
 	TreeNode<T>* insertAsRC(TreeNode<T>* node, const T& e);
 	TreeNode<T>* insertAsLT(TreeNode<T>* node, lbintree<T>*& tree);
@@ -98,7 +100,11 @@ public:
 
 	void insertLevel(T item);
 	int remove(TreeNode<T>* node);
+	int remove(const T& item);
 	TreeNode<T>* find(T item);
+	lvector<TreeNode<T>*> findAll(const T& item);
+	TreeNode<T>*& getInLevel(int rank);
+	T& operator[](int rank) { return getInLevel(rank)->item; }
 
 	template<typename F> void traversePre(TreeNode<T>* node, F visit); // recursion
 	template<typename F> void traversePost(TreeNode<T>* node, F visit); // recursion
@@ -109,6 +115,7 @@ public:
 	template<typename F> void postTraverse(TreeNode<T>* node, F visit); // iteration
 	template<typename F> void inTraverse(TreeNode<T>* node, F visit); // iteration
 	
+	void nullpointer(TreeNode<T>* node, lstring function);
 	void print();
 	void printLevel();
 };
@@ -139,39 +146,65 @@ template<typename T> void lbintree<T>::init(int n, const T& item){
 }
 
 
-template<typename T> TreeNode<T>* lbintree<T>::insertAsRoot(const T& e) {
-	_size = 1;
-	_root = new TreeNode<T>(e);
+template<typename T> TreeNode<T>* lbintree<T>::insertRootTakeLeft(const T& e) {
+	_size += 1;
+	TreeNode<T>* newnode = new TreeNode<T>(e);
+	if (_root) _root->parent = newnode;
+	newnode->lchild = _root;
+	_root = newnode;
+	return _root;
+}
+template<typename T> TreeNode<T>* lbintree<T>::insertRootTakeRight(const T& e)
+{
+	_size += 1;
+	TreeNode<T>* newnode = new TreeNode<T>(e);
+	if(_root) _root->parent = newnode;
+	newnode->rchild = _root;
+	_root = newnode;
 	return _root;
 }
 template<typename T> TreeNode<T>* lbintree<T>::insertAsLC(TreeNode<T>* node, const T& e) {
+	nullpointer(node, "insertAsLC");
 	_size++;
 	TreeNode<T>* newnode = new TreeNode<T>(e);
 	newnode->insertAsLeftChild(node);
 	return newnode;
 }
 template<typename T> TreeNode<T>* lbintree<T>::insertAsRC(TreeNode<T>* node, const T& e) {
+	nullpointer(node, "insertAsRC");
 	_size++;
 	TreeNode<T>* newnode = new TreeNode<T>(e);
 	newnode->insertAsRightChild(node);
 	return newnode;
 }
 template<typename T> TreeNode<T>* lbintree<T>::insertAsLT(TreeNode<T>* node, lbintree<T>*& tree) {
+	nullpointer(node, "insertAsLT");
+	if (node->hasRight()) {
+		std::cout << "Error in insertAsLT: This node has already had nodes as its left child!" << std::endl;
+		exit(0);
+	}
 	_size += tree->size();
 	node->lchild = tree->root();
 	node->lchild->parent = node;
 	node->lchild->updateHeightAbove();
+	return node;
 }
 template<typename T> TreeNode<T>* lbintree<T>::insertAsRT(TreeNode<T>* node, lbintree<T>*& tree) {
+	nullpointer(node, "insertAsRT");
+	if (node->hasRight()) {
+		std::cout << "Error in insertAsRT: This node has already had nodes as its right child!" << std::endl;
+		exit(0);
+	}
 	_size += tree->size();
 	node->rchild = tree->root();
 	node->rchild->parent = node;
 	node->rchild->updateHeightAbove();
+	return node;
 }
 
 template<typename T> void lbintree<T>::insertLevel(T item){
 	if (!_root) {
-		insertAsRoot(item);
+		insertRootTakeLeft(item);
 		return;
 	}
 	lqueue<TreeNode<T>*> q;
@@ -195,27 +228,71 @@ template<typename T> void lbintree<T>::insertLevel(T item){
 
 template<typename T> int lbintree<T>::remove(TreeNode<T>* node){
 	int removalSize = 0;
-	TreeNode<T>* p = node->parent;
-	if (!p) {
-		_root = nullptr;
-		int result = _size;
-		_size = 0;
-		return result;
+	if (node == nullptr) return 0;
+	if (node->parent != nullptr) {
+		if (node == node->parent->lchild) node->parent->lchild = nullptr;
+		if (node == node->parent->rchild) node->parent->rchild = nullptr;
 	}
 	lqueue<TreeNode<T>*> q;
+	TreeNode<T>* p = node->parent;
 	q.enqueue(node);
 	while (!q.isEmpty()) {
 		TreeNode<T>* temp = q.dequeue();
-		removalSize++;
-		if (temp->hasLeft()) q.enqueue(temp->lchild);
-		if (temp->hasRight()) q.enqueue(temp->rchild);
+		if (temp){
+			removalSize++;
+			if (temp->hasLeft()) q.enqueue(temp->lchild);
+			if (temp->hasRight()) q.enqueue(temp->rchild);
+			temp->parent = nullptr; temp->lchild = nullptr; temp->rchild = nullptr;
+			delete temp;
+			temp = nullptr;
+		}
 	}
-	if (node == node->parent->lchild) node->parent->lchild = nullptr;
-	if (node->parent == node->parent->rchild) node->parent->rchild = nullptr;
-	node->parent = nullptr;
-	_size -= removalSize;
-	p->updateHeightAbove();
+	if (p) p->updateHeightAbove();
 	return removalSize;
+}
+
+template<typename T>int lbintree<T>::remove(const T& item){
+	lvector<TreeNode<T>*> removals = findAll(item);
+	std::cout << removals.size() << std::endl;
+	return removals.size();
+}
+
+template<typename T> TreeNode<T>* lbintree<T>::find(T item){
+	TreeNode<T>* res = nullptr;
+	preTraverse(_root, [&](TreeNode<T>* p) {
+		if (p->item == item)
+			res = p;
+		});
+	return res;
+}
+
+template<typename T> lvector<TreeNode<T>*> lbintree<T>::findAll(const T& item){
+	lvector<TreeNode<T>*> res;
+	traverseLevel(_root, [&](TreeNode<T>* p) {
+		if (p->item == item)
+			res.push_back(p);
+		});
+	return res;
+}
+
+template<typename T> TreeNode<T>*& lbintree<T>::getInLevel(int rank) {
+	try{
+		if (rank >= _size || rank < 0)
+			throw "Index Error In getInLevel";
+	}
+	catch (const char* errmsg){
+		std::cout << errmsg << std::endl;
+		exit(0);
+	}
+	int index = 0;
+	TreeNode<T>* res = new TreeNode<T>;
+	traverseLevel(_root, [&](TreeNode<T>* p) {
+		if (index == rank){
+			res = p;
+			index++;
+		}
+		});
+	return res;
 }
 
 template<typename T> template<typename F>
@@ -241,6 +318,7 @@ void lbintree<T>::traverseIn(TreeNode<T>* node, F visit) {//left->middle->right
 }
 template<typename T> template<typename F>
 void lbintree<T>::traverseLevel(TreeNode<T>* node, F visit) {
+	if (!node) return;
 	lqueue<TreeNode<T>*> q;
 	q.enqueue(node);
 	while (!q.isEmpty()) {
@@ -263,7 +341,8 @@ void lbintree<T>::traverseLevel(TreeNode<T>* node, F visit) {
 template<typename T> template<typename F>
 void lbintree<T>::preTraverse(TreeNode<T>* node, F visit){ // middle -> left -> right
 	lstack<TreeNode<T>*> st;
-	if (node) st.push(node);
+	if (!node) return;
+	st.push(node);
 	TreeNode<T>* cur = node;
 	while (!st.isEmpty()) {
 		cur = st.pop(); // get the top node of the stack.
@@ -284,7 +363,8 @@ void lbintree<T>::preTraverse(TreeNode<T>* node, F visit){ // middle -> left -> 
 template<typename T> template<typename F>
 void lbintree<T>::postTraverse(TreeNode<T>* node, F visit){
 	lstack<TreeNode<T>*> st;
-	if (node)st.push(node);
+	if (!node) return;
+	st.push(node);
 	TreeNode<T>* cur = node;
 	while (!st.isEmpty()) {
 		cur = st.pop(); // get the top node of the stack
@@ -305,7 +385,8 @@ void lbintree<T>::postTraverse(TreeNode<T>* node, F visit){
 template<typename T> template<typename F>
 void lbintree<T>::inTraverse(TreeNode<T>* node, F visit){
 	lstack<TreeNode<T>*> st;
-	if (node) st.push(node);
+	if (!node) return;
+	st.push(node);
 	TreeNode<T>* cur = node;
 	while (!st.isEmpty()) {
 		cur = st.pop();
@@ -324,7 +405,19 @@ void lbintree<T>::inTraverse(TreeNode<T>* node, F visit){
 	}
 }
 
+template<typename T> void lbintree<T>::nullpointer(TreeNode<T>* node, lstring function){
+	try {
+		if (!node)
+			throw "NullpointerException in " + function;
+	}
+	catch (lstring errmsg) {
+		std::cout << errmsg << std::endl;
+		exit(0);
+	}
+}
+
 template<typename T> void lbintree<T>::print() {
+	if (!_root) return;
 	traversePre(_root, [](TreeNode<T>* p)->void {
 		std::cout << p->item << "  ";
 		if (p->parent) std::cout << "parent: " << p->parent->item << "  ";
@@ -353,6 +446,7 @@ template<typename T> void lbintree<T>::print() {
 	std::cout << std::endl;
 }
 template<typename T> void lbintree<T>::printLevel() {
+	if (!_root) return;
 	lqueue<TreeNode<T>*> q;
 	q.enqueue(_root);
 	while (!q.isEmpty()) {

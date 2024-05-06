@@ -70,6 +70,10 @@ public:
 	int search(const T& target)const { return 0 >= _size ? -1 : search(0, _size, target); }
 	int find(int lo, int hi,const T& target) const; // unsorted
 	int find(const T& target)const { return 0 >= _size ? -1 : find(0, _size, target); }
+
+	lvector<T>& operator+(const lvector<T>& other);
+	bool operator==(const lvector<T>& other)const;
+
 };
 
 
@@ -351,6 +355,22 @@ typename lvector<T>::iterator& lvector<T>::iterator::operator++() {
 template<typename T> bool lvector<T>::iterator::operator!=(const iterator& other) {
 	return index < other.index;
 }
-template<typename T>T lvector<T>::iterator::operator*() {
+template<typename T> T lvector<T>::iterator::operator*() {
 	return parent->elem[index];
+}
+
+template<typename T> lvector<T>& lvector<T>::operator+(const lvector<T>& other) {
+	lvector<T>* res = new lvector<T>();
+	for (int i = 0; i < _size; i++)
+		res->push_back(elem[i]);
+	for (int j = 0; j < other.size(); j++)
+		res->push_back(other[j]);
+	return *res;
+}
+template<typename T> bool lvector<T>::operator==(const lvector<T>& other)const {
+	if (_size != other.size()) return false;
+	for (int i = 0; i < _size; i++)
+		if (elem[i] != other[i])
+			return false;
+	return true;
 }

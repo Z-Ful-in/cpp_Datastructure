@@ -1,6 +1,6 @@
 #pragma once
 #include<iostream>
-#include "lvector.h"
+#include "lvector.hpp"
 
 template <typename T> class lstack:public lvector<T>{
 public:

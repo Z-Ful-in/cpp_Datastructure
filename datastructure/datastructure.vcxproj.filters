@@ -20,13 +20,34 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="lvector.h">
+    <ClInclude Include="lvector.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="tools.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="llist.h">
+    <ClInclude Include="llist.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lstack.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lbintree.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lqueue.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lBST.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lstring.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="test.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BBST.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

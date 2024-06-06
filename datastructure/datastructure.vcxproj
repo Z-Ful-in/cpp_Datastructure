@@ -130,9 +130,16 @@
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="llist.h" />
-    <ClInclude Include="lvector.h" />
+    <ClInclude Include="BBST.hpp" />
+    <ClInclude Include="lbintree.hpp" />
+    <ClInclude Include="lBST.hpp" />
+    <ClInclude Include="llist.hpp" />
+    <ClInclude Include="lstack.hpp" />
+    <ClInclude Include="lstring.hpp" />
+    <ClInclude Include="lvector.hpp" />
+    <ClInclude Include="lqueue.hpp" />
     <ClInclude Include="tools.h" />
+    <ClInclude Include="test.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,5 @@
 #pragma once
-#include "llist.h"
+#include "llist.hpp"
 
 template<typename T> class lqueue :public llist<T> {
 public:

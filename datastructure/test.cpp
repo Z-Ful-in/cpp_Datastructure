@@ -1,9 +1,11 @@
 #include<iostream>
 #include<ctime>
-#include<memory>
-#include"lvector.h"
-#include"tools.h"
-#include"llist.h"
+#include"lvector.hpp"
+#include"tools.hpp"
+#include"llist.hpp"
+#include "lbintree.hpp"
+#include "lstring.hpp"
+#include"lBST.hpp"
 using namespace std;
 class test {
 public:
@@ -12,10 +14,16 @@ public:
 };
 int main() {
 	srand(time(0));
-	llist<int> p;
-	for (int i = 0; i < 10; i++)
-		p.insertAsLast(rand() % 10);
+	lvector<int> p(20);
+	int index = 0;
+	while(index < p.size())
+		p[index++] = rand() % 100;
 	p.print();
-	p.uniquify();
-	p.print();
+	cout << endl;
+	BST<int> test(p);
+	test.print();
+	test.remove(5);
+	//test.print();
+	//cout << endl;
+	test.print();
 }

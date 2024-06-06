@@ -1,5 +1,5 @@
 #pragma once
-#include "lvector.h"
+#include "lvector.hpp"
 #include<iostream>
 class lstring : public lvector<char> {
 public:

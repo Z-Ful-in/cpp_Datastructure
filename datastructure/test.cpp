@@ -1,7 +1,7 @@
 #include<iostream>
 #include<ctime>
 #include"lvector.hpp"
-#include"tools.hpp"
+#include"tools.h"
 #include"llist.hpp"
 #include "lbintree.hpp"
 #include "lstring.hpp"

@@ -239,25 +239,25 @@ template<typename T> void lvector<T>::insertSort(int lo, int hi) {
 }
 template<typename T> void lvector<T>::quickSort(int lo, int hi) {
 	if (lo >= hi - 1)return;
-	int number = elem[lo];
-	int startindex = lo, endindex = hi;
-	T* result = new T[_size];
-	for (int i = lo + 1; i < hi; i++) {
+	T number = elem[lo];
+	int startindex = 0, endindex = hi - lo;
+	T* temp = new T[hi - lo];
+;	for (int i = lo + 1; i < hi; i++) {
 		if (elem[i] <= number) {
-			result[startindex++] = elem[i];
+			temp[startindex++] = elem[i];
 		}
 		else {
-			result[--endindex] = elem[i];
+			temp[--endindex] = elem[i];
 		}
 	}
-	result[startindex] = number;
+	temp[startindex] = number;
 	for (int i = lo; i < hi; i++)
 	{
-		elem[i] = result[i];
+		elem[i] = temp[i - lo];
 	}
-	delete[] result;
-	quickSort(lo, startindex);
-	quickSort(endindex, hi);
+	delete[] temp;
+	quickSort(lo, startindex + lo);
+	quickSort(endindex + lo, hi);
 }
 template<typename T> void lvector<T>::bubbleSort(int lo, int hi) {
 	while (lo < --hi) {
@@ -290,7 +290,7 @@ template<typename T> void lvector<T>::mergeSort(int lo, int hi) {
 	return;
 }
 template<typename T> void lvector<T>::sort(int lo, int hi) {
-	mergeSort(lo, hi);
+	quickSort(lo, hi);
 }
 
 template<typename T> int lvector<T>::search(int lo, int hi, const T& target) const {
